@@ -21,6 +21,7 @@ class Board():
     - Num_misses
     - Num_attempts
     - Num_ships (# of squares occupied by ships currently)
+    - valid_move 
 
     Behaviors:
     - missile() (coordinates : (int, int))  -- fires a missle at the coordinate
@@ -51,9 +52,10 @@ class Board():
         self.num_fires =+ 1
 
         # Make the reward at the hidden board visible on the AI board.
-        # Maddie: I added .copy() to ensure they weren't editing each other but not sure if necessary.
+        # Maddie: I added .copy() to ensure they weren't editing each other but not sure if necessary or valid.
+        # This needs to occur prior to seing if it is a hit, as the return will break from the funtcion.
         self.AIBoard[x][y] = self.HiddenBoard[x][y].copy()
-        
+
         # checks if given coordinate is a miss or hit
  
         if (x, y) in self.ships:
@@ -103,14 +105,22 @@ class Board():
         """
 
 
-
+    # Check if the game should be finished.
     def check_gameover(self): 
         """ Check gameover condition (all ships sunk). """
         total_life = sum(ship.num_left for ship in self.ships)
         if total_life == 0: 
             return True 
         else: 
-            return False  
+            return False 
+
+    # Is the provided coordinate a valid move
+    def valid_move(self, coordinate):
+        # If this value has not already been guessed, return that this is a valid move.
+        if self.AIBoard[coordinate[0]][coordinate[1]] == 0:
+            return True
+        # Otherwise, as there is a value already at this coordinate, it is not valid.
+        return False
         
 
         
