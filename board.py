@@ -107,7 +107,7 @@ class Board():
 
     # Check if the game should be finished.
     def check_gameover(self): 
-        """ Check gameover condition (all ships sunk). """
+        """ Check  gameover condition (all ships sunk). """
         total_life = sum(ship.num_left for ship in self.ships)
         if total_life == 0: 
             return True 
