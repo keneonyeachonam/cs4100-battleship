@@ -52,9 +52,9 @@ class Board():
         # Return total score of every column in board.
         return score
 
-    
+
     # How many misses have been made.
-    def num_misses():
+    def num_misses(self):
         misses = 0
         for row in Board.AIBoard:
             for column in row:
@@ -63,7 +63,7 @@ class Board():
                     misses =+ 1
         return misses
     
-        
+
 
     def place_ship(self, ship, row, col):
         # Places a ship onto the board using the given coords (row, col)
