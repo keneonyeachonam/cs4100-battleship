@@ -74,7 +74,7 @@ class Board():
     def place_ship(self, ship, row, col):
         # Places a ship onto the board using the given coords (row, col)
         self.ships.append(ship)            # places ship in list
-        self.HiddenBoard[row][col] = 'X'   # marks its coors on the board (hidden board)
+        self.HiddenBoard[row][col] = 'X'   # marks its coors on the board (hidden board), 'X' = cell of a ship
 
 
         
@@ -90,7 +90,10 @@ class Board():
 
         # Add one to the total fires.
         # This should update misses and make the appropriate changes.
-        Board.num_fires =+ 1
+        if (self.HiddenBoard[x][y] == 'X'):
+            Board.num_fires =+ 1
+        else:
+            Board.num_misses =+ 1
 
         # Make the reward at the hidden board visible on the AI board.
         # Maddie: I added .copy() to ensure they weren't editing each other but not sure if necessary.
@@ -98,6 +101,7 @@ class Board():
         
         # checks if given coordinate is a miss or hit, given if (x, y) is in list of tuples (ships)
         ship_coors = [Board.ships[i].coordinates for i in Board.ships]
+
         if (x, y) in ship_coors:
             # update num_hit for the ship
             ship_idx = ship_coors.index((x, y))
