@@ -66,8 +66,9 @@ class Ship():
         
         return self.isSunk
     
-
-    def num_left():
+    
+    # returns tiles left to hit 
+    def get_num_left():
         return Ship.num_left
 
 

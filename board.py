@@ -1,6 +1,13 @@
 # Creating the board and its functions
 import numpy as np
 
+from ship import Direction
+
+HIT_EMPTY = 'X'
+HIT_SHIP = 'O'
+NONHIT_SHIP = 0
+NONHIT_EMPTY = '_'
+
 class Board():
 
     '''
@@ -8,7 +15,7 @@ class Board():
 
     Attrbutes:
     - size (int) = the dimension of a square n x n board
-    - ships (array) = ships that occupy the board
+    - ships (array) = ships that occupy the board and its coordinates
     - num_fires (int) = numbers of times moves were made (hits or misses)
     - board_AI (array) = 2D array representing gameboard. 0 for ocean, -1 for miss, 100 for hit
     - actual_board (not seen by AI) (array) = 2D array representing board. 0 for ocean, 100 for actual ship locations
@@ -27,7 +34,7 @@ class Board():
     '''
     
     # Define creation of a Board.
-    def __init__(self, size, ships):
+    def __init__(self, size):  # removed ships parameter since we start we zero anyway
         self.size = size
         self.ships = []    # Intitally no ships on the board, list of Ships
         self.num_fires = 0 # Initially the fire count is 0
@@ -49,32 +56,48 @@ class Board():
     
     # Define the calculation of the score.
     # Does anyone know how to search through a 2d numpy arrray in faster time? I know the total time is 10 x 10 at max but.
-    def score():
+    def score(self):
         score = 0
         # For every row and column of the board, add the value to the total.
-        for row in Board.AIBoard: 
-            for column in row:
-                score =+ Board.AIBoard[row][column]
+        # for row in Board.AIBoard: 
+        #     for column in row:
+        #         score =+ Board.AIBoard[row][column]
         # Return total score of every column in board.
-        return score
+        return np.sum(self.AIBoard)
 
 
     # How many misses have been made.
     def num_misses(self):
         misses = 0
-        for row in Board.AIBoard:
-            for column in row:
-                # If the value at each coordinate is equal to negative 1, add one to the count of misses.
-                if Board.AIBoard[row][column] == -1:
+        for row in range(0, len(self.AIBoard)):
+            for column in range(0, len(self.AIBoard[0])):
+                column = int(column)
+                # If the value a
+                # t each coordinate is equal to negative 1, add one to the count of misses.
+                if self.AIBoard[row][column] == -1.0:
                     misses =+ 1
         return misses
     
 
-
+    # Places a ship onto the board using the given coords (row, col)
     def place_ship(self, ship, row, col):
-        # Places a ship onto the board using the given coords (row, col)
-        self.ships.append(ship)            # places ship in list
-        self.HiddenBoard[row][col] = 'X'   # marks its coors on the board (hidden board), 'X' = cell of a ship
+        # adds ship and its coordinates to list
+        self.ships.append((ship, (row, col))) 
+
+        # marks its coors on the board (hidden board)
+        # 'X' = part of a ship's positon on board - assuming it's more than 1 unit
+        if (ship.dir == Direction.NORTH):
+            for i in range(0, ship.size):
+                self.HiddenBoard[row + i][col] = NONHIT_SHIP
+        elif (ship.dir == Direction.SOUTH):
+            for i in range(0, ship.size):
+                self.HiddenBoard[row - i][col] = NONHIT_SHIP  
+        elif (ship.dir == Direction.WEST):
+            for i in range(0, ship.size):
+                self.HiddenBoard[row][col + i] = NONHIT_SHIP  
+        elif (ship.dir == Direction.EAST):
+            for i in range(0, ship.size):
+                self.HiddenBoard[row][col - i] = NONHIT_SHIP 
 
 
         
@@ -83,7 +106,7 @@ class Board():
         launches a missle at the coordinate points
 
         Return -1 for a miss and return 100 for a hit
-        AA missile launched at  location already fired returns a miss
+        AA missile launched at location already fired returns a miss
         """
         x = coordinates[0]
         y = coordinates[1]
@@ -91,26 +114,26 @@ class Board():
         # Add one to the total fires.
         # This should update misses and make the appropriate changes.
         if (self.HiddenBoard[x][y] == 'X'):
-            Board.num_fires =+ 1
+            self.num_fires =+ 1
         else:
-            Board.num_misses =+ 1
+            self.num_misses =+ 1
 
         # Make the reward at the hidden board visible on the AI board.
         # Maddie: I added .copy() to ensure they weren't editing each other but not sure if necessary.
-        Board.AIBoard[x][y] = Board.HiddenBoard[x][y].copy() 
+        self.AIBoard[x][y] = self.HiddenBoard[x][y].copy() 
         
         # checks if given coordinate is a miss or hit, given if (x, y) is in list of tuples (ships)
-        ship_coors = [Board.ships[i].coordinates for i in Board.ships]
+        ship_coors = [self.ships[i][1] for i in self.ships]
 
         if (x, y) in ship_coors:
             # update num_hit for the ship
             ship_idx = ship_coors.index((x, y))
-            Board.ships[ship_idx].num_hit += 1
-            Board.ships[ship_idx].num_left -= 1
+            self.ships[ship_idx].num_hit += 1
+            self.ships[ship_idx].num_left -= 1
             return 100
         else:
             # update num_misses for the ship
-            Board.ships[ship_idx].num_misses += 1
+            self.ships[ship_idx].num_misses += 1
             return -1
 
 
@@ -125,10 +148,10 @@ class Board():
         
 
     # return number of ships left on board
-    def num_ships_left():
+    def num_ships_left(self):
         afloat_ships = 0
 
-        for ship in Board.ships:
+        for ship in self.ships:
             if ship.num_left > 0:
                 afloat_ships += 1
 
