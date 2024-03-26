@@ -3,18 +3,24 @@ from ship import Ship
 
 ship_starter = Ship("test boat", 1)
 
-# # SHIP: 
-# size(self)
-# hit(self)
+# SHIP: 
+# Testing the initalization of a ship 
 print(ship_starter)
-print(Ship.size(ship_starter)) # size 1
-print(Ship.hit(ship_starter)) # false
+print(Ship.size(ship_starter) == 1)         # true
+print(Ship.hit(ship_starter))               # false
+
 ship_starter.hit()
 
-ship_two = Ship("bigger boat", 2)
+print(Ship.num_left(ship_starter) == 0)     # true
+print(ship_starter.isSunk == True)          # true
+print(ship_starter.num_ships_left == 0)          # true
 
-print(ship_two.name)
-print(Ship.hit(ship_two))
+
+ship_two = Ship("bigger boat", 2)
+print(ship_two.name) 
+print(Ship.hit(ship_two) == 1)          # true
+print(Ship.size(ship_two) == 1)         # true
+print(Ship.num_left(ship_two) == 1)     # true
 
 # print(board_starter)
 

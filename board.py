@@ -23,6 +23,7 @@ class Board():
     - missile() (coordinates : (int, int))  -- fires a missle at the coordinate
     - num_ships_left()                      -- give the numbers of ships still alive
     - score()                               -- updates current score
+    - guess(x, y)                           -- guesses a coordinate
     '''
     
     # Define creation of a Board.
@@ -31,6 +32,11 @@ class Board():
         self.ships = []    # Intitally no ships on the board, list of Ships
         self.num_fires = 0 # Initially the fire count is 0
         
+        # list of ships, list of ship heads?
+        # x = random.randint(0, size+1)
+        # y = random.randint(0, size+1)
+        # self.coordinates = (x, y) # random? -- coords of ship head
+
         # Board as seen by AI, should be instantiated as a 2d array of 0s.
         # Updated as hits are made
         self.AIBoard = np.zeros((size, size))
@@ -67,11 +73,14 @@ class Board():
 
     def place_ship(self, ship, row, col):
         # Places a ship onto the board using the given coords (row, col)
-        self.ships.append((row, col))
+        self.ships.append(ship)            # places ship in list
+        self.HiddenBoard[row][col] = 'X'   # marks its coors on the board (hidden board)
+
 
         
     def missile(self, coordinates):
-        """" launches a missle at the coordinate points
+        """" 
+        launches a missle at the coordinate points
 
         Return -1 for a miss and return 100 for a hit
         AA missile launched at  location already fired returns a miss
@@ -85,7 +94,7 @@ class Board():
 
         # Make the reward at the hidden board visible on the AI board.
         # Maddie: I added .copy() to ensure they weren't editing each other but not sure if necessary.
-        Board.AIBoard[x][y] = Board.HiddenBoard[x][y].copy()
+        Board.AIBoard[x][y] = Board.HiddenBoard[x][y].copy() 
         
         # checks if given coordinate is a miss or hit, given if (x, y) is in list of tuples (ships)
         ship_coors = [Board.ships[i].coordinates for i in Board.ships]
@@ -101,17 +110,17 @@ class Board():
             return -1
 
 
-
     def check_gameover(self): 
         """ Check gameover condition (all ships sunk). """
-        total_life = sum(ship.num_left for ship in self.ships)
+        total_life = sum([ship.num_left for ship in self.ships])
 
         if total_life == 0: 
             return True 
         else: 
             return False 
+        
 
-
+    # return number of ships left on board
     def num_ships_left():
         afloat_ships = 0
 
@@ -120,6 +129,7 @@ class Board():
                 afloat_ships += 1
 
         return afloat_ships
+
         
 
         
