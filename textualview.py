@@ -24,7 +24,16 @@ class View():
     
 def textual_view_draw():
     # should just iterate through every val in array
-    # non-hit non-ship tiles represented by:
-    # non-hit SHIP tiles represented by
+    # HIDDEN BOARD:
+    # non-hit non-ship tiles represented by: _
+    # HIT non-ship tiles represented by:     X
+    # non-hit SHIP tiles represented by:     _
+    # hit SHIP tiles represented by:         O
+
+    # NON-HIDDEN BOARD:
+    # non-hit non-ship tiles represented by: _
+    # HIT non-ship tiles represented by:     !
+    # non-hit SHIP tiles represented by:     O
+    # hit SHIP tiles represented by:         X
 
     return None
