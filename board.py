@@ -5,7 +5,7 @@ from ship import Direction
 
 HIT_EMPTY = 'X'
 HIT_SHIP = 'O'
-NONHIT_SHIP = 0
+NONHIT_SHIP = '_'
 NONHIT_EMPTY = '_'
 
 class Board():
@@ -35,7 +35,7 @@ class Board():
     
     # Define creation of a Board.
     def __init__(self, size):  # removed ships parameter since we start we zero anyway
-        self.size = size
+        self.size = size   # set board to be size by size 
         self.ships = []    # Intitally no ships on the board, list of Ships
         self.num_fires = 0 # Initially the fire count is 0
         
@@ -44,20 +44,21 @@ class Board():
         # y = random.randint(0, size+1)
         # self.coordinates = (x, y) # random? -- coords of ship head
 
-        # Board as seen by AI, should be instantiated as a 2d array of 0s.
+        # Board as seen by AI, should be instantiated as a 2d array of Os.
         # Updated as hits are made
         self.AIBoard = np.zeros((size, size))
         
-        # Actual Board, should be instantiated as -1s, other than where ships are located.
+        # Actual Board, should be instantiated as '_', other than where ships are located.
         # Instantiates as an empty board, then should add ships as provided.
         # Remains constant throughout entire game.
-        self.HiddenBoard = np.full((size, size), -1)
+        # Changed value so it can by compatiable for the textual view
+        self.HiddenBoard = np.full((size, size), '_')
 
     
     # Define the calculation of the score.
     # Does anyone know how to search through a 2d numpy arrray in faster time? I know the total time is 10 x 10 at max but.
     def score(self):
-        score = 0
+        # score = 0
         # For every row and column of the board, add the value to the total.
         # for row in Board.AIBoard: 
         #     for column in row:
@@ -72,8 +73,7 @@ class Board():
         for row in range(0, len(self.AIBoard)):
             for column in range(0, len(self.AIBoard[0])):
                 column = int(column)
-                # If the value a
-                # t each coordinate is equal to negative 1, add one to the count of misses.
+                # If the value at each coordinate is equal to negative 1, add one to the count of misses.
                 if self.AIBoard[row][column] == -1.0:
                     misses =+ 1
         return misses
@@ -82,7 +82,7 @@ class Board():
     # Places a ship onto the board using the given coords (row, col)
     def place_ship(self, ship, row, col):
         # adds ship and its coordinates to list
-        self.ships.append((ship, (row, col))) 
+        self.ships.append([ship, (row, col)]) 
 
         # marks its coors on the board (hidden board)
         # 'X' = part of a ship's positon on board - assuming it's more than 1 unit
@@ -111,35 +111,41 @@ class Board():
         x = coordinates[0]
         y = coordinates[1]
 
-        # Add one to the total fires.
-        # This should update misses and make the appropriate changes.
-        if (self.HiddenBoard[x][y] == 'X'):
+        ship_coors = [ship[1] for ship in self.ships]
+
+        # Add one to the total fires if (x, y) is a position of a ship and change its symbol on the hidden board
+        # Add one to the total misses if (x, y) is a position of an empty tile and change its symbol on the hidden board
+        if (x, y) in ship_coors:
             self.num_fires =+ 1
+            self.HiddenBoard[x][y] = HIT_SHIP
         else:
             self.num_misses =+ 1
+            self.HiddenBoard[x][y] = HIT_EMPTY
 
         # Make the reward at the hidden board visible on the AI board.
         # Maddie: I added .copy() to ensure they weren't editing each other but not sure if necessary.
-        self.AIBoard[x][y] = self.HiddenBoard[x][y].copy() 
+        # Kene: commented out self.AIBoard[x][y] = self.HiddenBoard[x][y].copy() since arrays are of different types
+        # self.AIBoard[x][y] = self.HiddenBoard[x][y].copy() 
         
         # checks if given coordinate is a miss or hit, given if (x, y) is in list of tuples (ships)
-        ship_coors = [self.ships[i][1] for i in self.ships]
+        # print('self.ships: ' + str(self.ships))
+            
 
         if (x, y) in ship_coors:
-            # update num_hit for the ship
+            self.AIBoard[x][y] = 100  # set AIBoard[x][y] to 100 if a ship was hit (not sure if this is the right way to assign scores)
             ship_idx = ship_coors.index((x, y))
-            self.ships[ship_idx].num_hit += 1
-            self.ships[ship_idx].num_left -= 1
+            self.ships[ship_idx][0].num_hit += 1  # update num_hit for the ship
+            self.ships[ship_idx][0].num_left -= 1
             return 100
         else:
-            # update num_misses for the ship
-            self.ships[ship_idx].num_misses += 1
+            self.AIBoard[x][y] = -1  # set AIBoard[x][y] to -1 if an empty tile was hit (not sure if this is the right way to assign scores)
+            # self.ships[ship_idx].num_misses += 1  # update num_misses for the ship
             return -1
 
 
     def check_gameover(self): 
         """ Check gameover condition (all ships sunk). """
-        total_life = sum([ship.num_left for ship in self.ships])
+        total_life = sum([ship[0].num_left for ship in self.ships])
 
         if total_life == 0: 
             return True 
@@ -152,7 +158,7 @@ class Board():
         afloat_ships = 0
 
         for ship in self.ships:
-            if ship.num_left > 0:
+            if ship[0].num_left > 0:
                 afloat_ships += 1
 
         return afloat_ships
