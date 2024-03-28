@@ -20,20 +20,28 @@ class View():
 #     result = ''.join(string)
 
 #     return result
-        
-    
-def textual_view_draw():
-    # should just iterate through every val in array
-    # HIDDEN BOARD:
-    # non-hit non-ship tiles represented by: _
-    # HIT non-ship tiles represented by:     X
-    # non-hit SHIP tiles represented by:     _
-    # hit SHIP tiles represented by:         O
 
-    # NON-HIDDEN BOARD:
-    # non-hit non-ship tiles represented by: _
-    # HIT non-ship tiles represented by:     !
-    # non-hit SHIP tiles represented by:     O
-    # hit SHIP tiles represented by:         X
+def textual_view_draw(self, board):
+    ai_string = []
+    hidden_string = []
 
-    return None
+    # ai board
+    for tile in board.AIBoard:
+        if tile == 0: # non-ship tile
+            ai_string.append("_")
+        elif tile == -1: # non-ship tile has been hit
+            ai_string.append("X")
+        elif tile == 100: # ship tile has been hit
+            ai_string.append("O")
+
+    # hidden board
+    for tile in board.HiddenBoard:
+        if tile == 0:
+            ai_string.append("_")
+        elif tile == 100:
+            ai_string.append("O")
+
+    ai_result = ''.join(ai_string)
+    hidden_result = ''.join(hidden_string)
+
+    return ai_result + "\n" + hidden_result

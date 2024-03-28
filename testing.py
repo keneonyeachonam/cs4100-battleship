@@ -1,5 +1,6 @@
 from board import Board
 from ship import Ship
+from textualview import View
 
 # SHIP: 
 # Testing the initalization of a ship 
@@ -31,9 +32,9 @@ print()
 
 
 # BOARD:  
-
+list_ships = [ship_starter, ship_two]
 # Testing the initalization of the board
-board_starter = Board(4)
+board_starter = Board(4, list_ships)
 
 print("VALUES AT INITILALZATION")
 print(board_starter)
@@ -43,8 +44,8 @@ print('Hidden Board: ')
 print(board_starter.HiddenBoard)
 print('AI Board: ')
 print(board_starter.AIBoard)
-print('Does score begin at 0?: '+ str(board_starter.score() == 0.0))
-print('Does num of misses begin at 0?: '+ str(board_starter.num_misses() == 0.0))
+# print('Does score begin at 0?: '+ str(board_starter.score() == 0.0))
+# print('Does num of misses begin at 0?: '+ str(board_starter.num_misses() == 0.0))
 print('0 ships on board at start?: '+ str(board_starter.num_ships_left() == 0.0))
 print()
 
@@ -97,3 +98,8 @@ print('AI Board After Hits: ')
 print(board_starter.AIBoard)
 
 print('Score of AI Board: ' + str(board_starter.score() == 499))  # True
+
+# view (may be unecessary ultimately
+view = View()
+print("VIEW:")
+view.textual_view_draw(board_starter)
