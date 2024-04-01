@@ -18,7 +18,8 @@ class RLAgent():
 
 
     def play_until_completion(self, debug=False): 
-        """ Plays game until complete. Returns score (torpedo count)
+        """ 
+        Plays game until complete. Returns score (torpedo count)
         """
 
         reward_list = list()

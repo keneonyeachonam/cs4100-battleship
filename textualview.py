@@ -9,6 +9,9 @@ class View():
     textual_view_draw: renders a basic textual view of a board
     '''
 
+    def __init__(self, name):
+        self.name = name 
+
 # def visualize_ship(ship):
 #     string = []
 
@@ -21,27 +24,30 @@ class View():
 
 #     return result
 
-def textual_view_draw(self, board):
-    ai_string = []
-    hidden_string = []
 
-    # ai board
-    for tile in board.AIBoard:
-        if tile == 0: # non-ship tile
-            ai_string.append("_")
-        elif tile == -1: # non-ship tile has been hit
-            ai_string.append("X")
-        elif tile == 100: # ship tile has been hit
-            ai_string.append("O")
+    def textual_view_draw(self, board):
+        ai_string = []
+        hidden_string = []
 
-    # hidden board
-    for tile in board.HiddenBoard:
-        if tile == 0:
-            ai_string.append("_")
-        elif tile == 100:
-            ai_string.append("O")
+        # ai board
+        for row in board.AIBoard:
+            for tile in row:
+                if tile == 0: # non-ship tile
+                    ai_string.append("_")
+                elif tile == -1: # non-ship tile has been hit
+                    ai_string.append("X")
+                elif tile == 100: # ship tile has been hit
+                    ai_string.append("O")
 
-    ai_result = ''.join(ai_string)
-    hidden_result = ''.join(hidden_string)
+        # hidden board
+        for row in board.HiddenBoard:
+            for tile in row:
+                if tile == 0:
+                    ai_string.append("_") 
+                elif tile == 100:
+                    ai_string.append("O")
 
-    return ai_result + "\n" + hidden_result
+        ai_result = ''.join(ai_string)
+        hidden_result = ''.join(hidden_string)
+
+        return ai_result + "\n" + hidden_result

@@ -100,6 +100,6 @@ print(board_starter.AIBoard)
 print('Score of AI Board: ' + str(board_starter.score() == 499))  # True
 
 # view (may be unecessary ultimately
-view = View()
+view = View("view 1")
 print("VIEW:")
-view.textual_view_draw(board_starter)
+print(view.textual_view_draw(board_starter))
