@@ -3,33 +3,13 @@ import numpy as np
 from enum import Enum
 import random
 
+from ship import Direction, pick_direction
+
 HIT_EMPTY = -1
 HIT_SHIP = 100
-NONHIT_SHIP = 0
+NONHIT_SHIP = 1
 NONHIT_EMPTY = 0
 
-# moved here bc it's attribute of board (?)
-# or becomes part of ship when ships r added to board?
-class Direction(Enum):
-    '''
-    Direction on board. Points directly from one tile to another
-    '''
-    NORTH = 1
-    EAST = 2
-    SOUTH = 3
-    WEST = 4
-
-def pick_direction():
-    dir = random.randint(1, 5)
-    
-    if (dir == 1):
-        return Direction.NORTH
-    elif (dir == 2):
-        return Direction.EAST
-    elif (dir == 3):
-        return Direction.SOUTH
-    elif (dir == 4):
-        return Direction.WEST
 
 class Board():
 
@@ -68,36 +48,28 @@ class Board():
     '''
 
     # Define creation of a Board.
-    def __init__(self, size, ships): # takes in desired size and list of created ships
+    def __init__(self, size): # takes in desired size and list of created ships
         self.size = size
         self.ships = []    # list of Ships to be placed on board
         self.num_fires = 0 # Initially the fire count is 0
 
         # Visible to AI, should be instantiated as a 2d array of 0s.
-        # will be updated when ships are actually placed
+        # Updated when ships are actually placed
         self.AIBoard = np.zeros((size, size)) # -1 for miss, 100 for hit
         
         # Actual Board, should be instantiated as 0's, 100's where ships are located.
         # Instantiates as an empty board, then should add ships as provided.
         # Remains constant throughout entire game.
-        # will be updated when ships are actually placed AND when hits/misses are made
+        # Updated when ships are actually placed AND when hits/misses are made
         self.HiddenBoard = np.zeros((size, size))
 
-    # not sure if this function is neeeded since we already have a place_ship function below 
-    # def place_ships(self):
-    #     for ship in self.ships:
-    #         return None
-        # list of ships, list of ship heads?
-        # x = random.randint(0, size+1)
-        # y = random.randint(0, size+1)
-        # self.coordinates = (x, y) # random? -- coords of ship head
     
 
     def score(self): 
         '''
         Computes the calculation of the score of the board
         '''
-        return np.sum(self.AIBoard) # Kene: faster way to calculate the sum (or at least simplier)
+        return np.sum(self.AIBoard)
 
 
     def num_misses(self):
@@ -117,23 +89,52 @@ class Board():
     def place_ship(self, ship, row, col):
         '''
         Adds ship and its coordinates to the board (hidden board)
-        'X' = part of a ship's positon on board - assuming it's more than 1 unit
+        NONHIT_SHIP = part of a ship's positon on board - assuming it's more than 1 unit
+        Return message when given coordinates cause ship to go off the board and adjusts its size
         '''
         ship.dir = pick_direction()
+
         self.ships.append([ship, (row, col)]) 
+
+        place_count = 0
+        exceeded_dim_message = f"{ship.name} has exceeded dimensions from {row}, {col}."
 
         if (ship.dir == Direction.NORTH):
             for i in range(0, ship.size):
-                self.HiddenBoard[row + i][col] = NONHIT_SHIP
+                if (row + i < self.size):
+                    self.HiddenBoard[row + i][col] = NONHIT_SHIP
+                    place_count += 1
+                else:
+                    ship.size = place_count 
+                    print(exceeded_dim_message + f" Size is now {ship.size}")
+                    return
         elif (ship.dir == Direction.SOUTH):
             for i in range(0, ship.size):
-                self.HiddenBoard[row - i][col] = NONHIT_SHIP  
+                if (row - i >= 0):
+                    self.HiddenBoard[row - i][col] = NONHIT_SHIP
+                    place_count += 1
+                else:
+                    ship.size = place_count 
+                    print(exceeded_dim_message + f" Size is now {ship.size}")
+                    return
         elif (ship.dir == Direction.WEST):
             for i in range(0, ship.size):
-                self.HiddenBoard[row][col + i] = NONHIT_SHIP  
+                if (col + i < self.size):
+                    self.HiddenBoard[row][col + i] = NONHIT_SHIP 
+                    place_count += 1 
+                else:
+                    ship.size = place_count 
+                    print(exceeded_dim_message + f" Size is now {ship.size}")
+                    return
         elif (ship.dir == Direction.EAST):
             for i in range(0, ship.size):
-                self.HiddenBoard[row][col - i] = NONHIT_SHIP 
+                if (col - i >= 0):
+                    self.HiddenBoard[row][col - i] = NONHIT_SHIP
+                    place_count += 1
+                else:
+                    ship.size = place_count 
+                    print(exceeded_dim_message + f" Size is now {ship.size}.")
+                    return
 
         
     def missile(self, coordinates):
@@ -159,24 +160,15 @@ class Board():
 
 
         # Make the reward at the hidden board visible on the AI board.
-        # Maddie: I added .copy() to ensure they weren't editing each other but not sure if necessary.
-            
-        # Kene: commented out self.AIBoard[x][y] = self.HiddenBoard[x][y].copy() since arrays are of different types
-        # self.AIBoard[x][y] = self.HiddenBoard[x][y].copy() 
-        
         # checks if given coordinate is a miss or hit, given if (x, y) is in list of tuples (ships)
-        # print('self.ships: ' + str(self.ships))
-            
-
         if (x, y) in ship_coors:
-            self.AIBoard[x][y] = 100  # set AIBoard[x][y] to 100 if a ship was hit (not sure if this is the right way to assign scores)
+            self.AIBoard[x][y] = 100  # set AIBoard[x][y] to 100 if a ship was hit
             ship_idx = ship_coors.index((x, y))
-            self.ships[ship_idx][0].num_hit += 1  # update num_hit for the ship
+            self.ships[ship_idx][0].num_hit += 1  
             self.ships[ship_idx][0].num_left -= 1
             return 100
         else:
-            self.AIBoard[x][y] = -1  # set AIBoard[x][y] to -1 if an empty tile was hit (not sure if this is the right way to assign scores)
-            # self.ships[ship_idx].num_misses += 1  # update num_misses for the ship
+            self.AIBoard[x][y] = -1  # set AIBoard[x][y] to -1 if an empty tile was hit 
             return -1
         
 

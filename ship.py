@@ -1,5 +1,34 @@
+from enum import Enum
 import numpy as np
 import random
+
+
+
+class Direction(Enum):
+    '''
+    Direction on board. Points directly from one tile to another
+    '''
+    NORTH = 1
+    EAST = 2
+    SOUTH = 3
+    WEST = 4
+    
+    
+def pick_direction():
+    '''
+    Selects a random direction for a ship
+    '''
+    dir = random.randint(1, 4)
+    
+    if (dir == 1):
+        return Direction.NORTH
+    elif (dir == 2):
+        return Direction.EAST
+    elif (dir == 3):
+        return Direction.SOUTH
+    elif (dir == 4):
+        return Direction.WEST
+    
 
 # Creating the ship and its functions. 
 
@@ -22,7 +51,7 @@ class Ship():
         # MOVED BEHAVIOR TO BOARD:
         # (x, y) = head of ship
         # MOVED TO BOARD: 
-        self.dir = None             # orientation of ship (matters for board); None is its default before being placed on the board
+        self.dir = pick_direction() # orientation of ship (matters for board); None is its default before being placed on the board
         self.num_left = size        # number of unhit tiles left on ship
         self.num_hit = 0            # number of hit tiles left on ship
         self.isSunk = False;        # not sunk yet

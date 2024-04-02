@@ -32,14 +32,13 @@ print()
 
 
 # BOARD:  
-list_ships = [ship_starter, ship_two]
 # Testing the initalization of the board
-board_starter = Board(4, list_ships)
+board_starter = Board(10)
 
 print("VALUES AT INITILALZATION")
 print(board_starter)
-print(board_starter.size == 4)
-print(len(board_starter.ships) == 0)
+print('board_starter.size == 10: ' + str(board_starter.size == 10))
+print('len(board_starter.ships) == 0: ' + str(len(board_starter.ships) == 0))
 print('Hidden Board: ')
 print(board_starter.HiddenBoard)
 print('AI Board: ')
@@ -51,19 +50,20 @@ print()
 
 # Testing the gameplay methods of the board 
 print("PLACING SHIPS ON BOARD")
-ship1 = Ship("ship 1", 1)
+ship1 = Ship("ship 1", 5)
 ship2 = Ship("ship 2", 1)
 ship3 = Ship("ship 3", 1)
 ship4 = Ship("ship 4", 1)
-ship5 = Ship("ship 5", 1)
+ship5 = Ship("ship 5", 2)
 
 board_starter.place_ship(ship1, 0, 1)
-board_starter.place_ship(ship2, 1, 2)
-board_starter.place_ship(ship3, 3, 3)
-board_starter.place_ship(ship4, 1, 1)
+board_starter.place_ship(ship2, 6, 2)
+board_starter.place_ship(ship3, 5, 3)
+board_starter.place_ship(ship4, 9, 9)
 board_starter.place_ship(ship5, 2, 1)
 
-print('Five ships on board?: ' + str(len(board_starter.ships) == 5)) 
+print('Five ships on board?: ' + str(len(board_starter.ships) == 5))
+print('Ship size for ship start at (0, 1) correct?: ' + str(ship1.size))
 print('Hidden Board After Placing Ships: ')
 print(board_starter.HiddenBoard)
 print()
@@ -73,6 +73,7 @@ board_starter.missile((0, 1))
 board_starter.missile((1, 1))
 board_starter.missile((2, 1))
 board_starter.missile((2, 2))
+board_starter.missile((9, 9))
 
 print('Number of Fires Increased?: ' + str(board_starter.num_fires == 4))  # True
 
@@ -84,7 +85,7 @@ print(board_starter.AIBoard)
 
 print('Number of Ships Left?: ' + str(board_starter.num_ships_left() == 2))  # True
 print('Game Over?: ' + str(board_starter.check_gameover()))  # False
-print('Score of AI Board: ' + str(board_starter.score() == 299))  # True
+print('Score of AI Board: ' + str(board_starter.score()))  
 
 board_starter.missile((3, 3))
 board_starter.missile((1, 2))
