@@ -4,6 +4,12 @@ from keras.models import Sequential
 from keras.layers import InputLayer
 from keras.layers import Dense
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from tqdm import tqdm
+
 env = gym.make()
 
 '''
@@ -19,4 +25,27 @@ NOTES FROM MEETING - 040324
 - flatten board to a (25, 1) array 
 - use softmax as last layer (pick max prob, if invalid pick next biggest probabilty)
 '''
+
+
+class Net(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 25, (2, 2))
+        self.fc1 = nn.Linear(9, 25)
+        self.m = nn.Softmax(dim=1)
+
+    def forward(self, x):
+        x = self.pool(F.relu(self.conv1(x)))
+        x = torch.flatten(x, 1) # flatten all dimensions except the batch dimension
+        x = F.relu(self.fc1(x))
+        x = self.m
+        return x
+        
+net = Net()
+
+# criterion = (L = -log(P(a | s) * R) and do backprogation to get min loss
+optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+
+
+
 
