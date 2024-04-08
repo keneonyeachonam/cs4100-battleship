@@ -9,8 +9,43 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from tqdm import tqdm
+from board import Board
+from ship import Ship
+import random
 
 env = gym.make()
+
+
+''' Generate game data to train on '''
+board = Board(5)
+
+def make_and_place_ships():
+    # create a random seed?
+    ships_positions = []
+
+    for i in range(0, 3):
+        size = random.randint(1, 3)
+        row = random.randint(0, 4)
+        col = random.randint(0, 4)
+
+        new_ship = Ship(str("ship" + i), size)
+        
+        if (row, col) not in ships_positions:
+            board.place_ship(new_ship, row, col)
+
+        ships_positions.append((row, col))
+
+def play_games(iter):
+    game_boards = np.array([])
+
+    for i in range(0, iter):
+        while not board.check_gameover():
+            row = random.randint(0, 4)
+            col = random.randint(0, 4)
+            board.missile(row, col)
+    
+        game_boards.append(board.AIBoard)
+
 
 '''
 NOTES FROM MEETING - 040324
@@ -46,6 +81,28 @@ net = Net()
 # criterion = (L = -log(P(a | s) * R) and do backprogation to get min loss
 optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
+# Train model!
+# num_epochs = 20
+# loss_over_time = []
 
+# for epoch in tqdm(range(num_epochs)):  # loop over the dataset multiple times
+#     running_loss = 0.0
+#     for i, data in enumerate(trainloader, 0):
+#         # get the inputs; data is a list of [inputs, labels]
+#         inputs, labels = data
 
+#         # zero the parameter gradients
+#         optimizer.zero_grad()
+
+#         # forward + backward + optimize
+#         outputs = net(inputs)
+#         loss = criterion(outputs, labels)
+#         loss.backward()
+#         optimizer.step()
+#         running_loss += loss.item()
+
+#     print(f"Training loss: {running_loss}")
+#     loss_over_time.append(running_loss)
+
+# print('Finished Training') 
 

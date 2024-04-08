@@ -144,32 +144,40 @@ class Board():
         Return -1 for a miss and return 100 for a hit
         AA missile launched at  location already fired returns a miss
         """
+        moves = []
+
         x = coordinates[0]
         y = coordinates[1]
 
         ship_coors = [ship[1] for ship in self.ships]
 
-        # Add one to the total fires.
-        # This should update misses and make the appropriate changes.
-        if (x, y) in ship_coors:
-            self.num_fires =+ 1
-            self.HiddenBoard[x][y] = HIT_SHIP
-        else:
-            self.num_misses =+ 1
-            self.HiddenBoard[x][y] = HIT_EMPTY
+        if (x, y) not in moves:
+            # Add one to the total fires.
+            # This should update misses and make the appropriate changes.
+            if (x, y) in ship_coors:
+                self.num_fires =+ 1
+                self.HiddenBoard[x][y] = HIT_SHIP
+            else:
+                self.num_misses =+ 1
+                self.HiddenBoard[x][y] = HIT_EMPTY
 
 
-        # Make the reward at the hidden board visible on the AI board.
-        # checks if given coordinate is a miss or hit, given if (x, y) is in list of tuples (ships)
-        if (x, y) in ship_coors:
-            self.AIBoard[x][y] = 100  # set AIBoard[x][y] to 100 if a ship was hit
-            ship_idx = ship_coors.index((x, y))
-            self.ships[ship_idx][0].num_hit += 1  
-            self.ships[ship_idx][0].num_left -= 1
-            return 100
+            # Make the reward at the hidden board visible on the AI board.
+            # checks if given coordinate is a miss or hit, given if (x, y) is in list of tuples (ships)
+            if (x, y) in ship_coors:
+                self.AIBoard[x][y] = 100  # set AIBoard[x][y] to 100 if a ship was hit
+                ship_idx = ship_coors.index((x, y))
+                self.ships[ship_idx][0].num_hit += 1  
+                self.ships[ship_idx][0].num_left -= 1
+                moves.append((x, y))
+                return 100
+            else:
+                self.AIBoard[x][y] = -1  # set AIBoard[x][y] to -1 if an empty tile was hit 
+                moves.append((x, y))
+                return -1
         else:
-            self.AIBoard[x][y] = -1  # set AIBoard[x][y] to -1 if an empty tile was hit 
-            return -1
+            raise("Move already made!")
+        
         
 
     def check_gameover(self): 
