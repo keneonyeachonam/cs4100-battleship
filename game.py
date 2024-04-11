@@ -46,6 +46,21 @@ def play_games(iter):
     
         game_boards.append(board.AIBoard)
 
+def generate_board_data(num_samples):
+    boards = []
+    labels = []  # This would ideally be the optimal next move based on historical data
+    
+    for _ in range(num_samples):
+        board = np.random.randint(0, 2, (5, 5))  # Random board states - Making random ships across the board. Not our def of ships
+        label = np.random.rand(25)               # Random 'optimal' move probabilities
+        label /= label.sum()                     # Normalize to make it a probability distribution
+        boards.append(board)
+        labels.append(label)
+        
+    return torch.tensor(boards, dtype=torch.float32), torch.tensor(labels, dtype=torch.float32)
+
+
+
 
 '''
 NOTES FROM MEETING - 040324
