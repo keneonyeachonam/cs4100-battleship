@@ -1,4 +1,56 @@
 import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from tqdm import tqdm
+from board import Board
+from ship import Ship
+import random
+
+
+def make_and_place_ships():
+    # create a random seed?
+    ships_positions = []
+    board = Board(5)
+
+    for i in range(0, 3):
+        size = random.randint(1, 3)
+        row = random.randint(0, 4)
+        col = random.randint(0, 4)
+
+        new_ship = Ship(str("ship" + i), size)
+        
+        if (row, col) not in ships_positions:
+            board.place_ship(new_ship, row, col)
+
+        ships_positions.append((row, col))
+
+    return board
+
+def play_game(board):
+    while not board.check_gameover():
+        row = random.randint(0, 4)
+        col = random.randint(0, 4)
+        board.missile(row, col)
+
+    return board.AIBoard
+
+
+def generate_board_data(num_samples):
+    boards = []
+    labels = []  # This would ideally be the optimal next move based on historical data
+    
+    for _ in range(num_samples):
+        board = play_game(make_and_place_ships())  # Random board states
+        label = np.random.rand(25)               # Random 'optimal' move probabilities
+        label /= label.sum()                     # Normalize to make it a probability distribution
+
+        boards.append(board)
+        labels.append(label)
+        
+    return torch.tensor(boards, dtype=torch.float32), torch.tensor(labels, dtype=torch.float32)
+
 
 def CNN():
     array_size = 3
@@ -27,8 +79,10 @@ def CNN():
     '''
     
     # ReLu layer
+    # Need to calculate values for each 3 x 3
 
     # Pooling Layer
+    # Map values of 3 x 3 s to 25 
 
     return output
 
