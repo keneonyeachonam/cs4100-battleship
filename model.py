@@ -110,7 +110,7 @@ def prob_action(board):
 # main training and testing model/data
 board, labels = generate_board_data(1000)   
 model = Net()
-ce = nn.CrossEntropyLoss()
+# ce = nn.CrossEntropyLoss()
 X_train, X_test, y_train, y_test = train_test_split(board, labels, test_size=0.33, random_state=42)
 
 # Instantiate training and test data
