@@ -8,7 +8,7 @@ from board import Board
 from ship import Ship
 import random
 
-
+print("I'M RUNNING")
 def make_and_place_ships():
     # create a random seed?
     ships_positions = []
@@ -109,3 +109,4 @@ def selection():
 
 def coord_format(val):
     return (val % 5, np.floor_divide(val, 5))
+print("I RAN")
