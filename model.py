@@ -79,6 +79,8 @@ def play_game_record_moves(board):
         hit = board.missile((row, col))
         reward = 100 if hit else -1
 
+        # print(f"board: {pre_move_gamestate}")
+
         # save 
         game_data.append((pre_move_gamestate, val_format(row, col), reward))
         
@@ -109,7 +111,7 @@ def generate_board_data(num_samples):
     rewards = np.array([])
 
     # all_game_data = []
-    for _ in range(num_samples):
+    for _ in tqdm(range(num_samples)):
         board_with_ships = make_and_place_ships()
         game_data = play_game_record_moves(board_with_ships) # get game states
         #all_game_data.extend(game_data)
@@ -119,22 +121,19 @@ def generate_board_data(num_samples):
             state = data[0]
             action = data[1]
             reward = data[2]
-            np.append(boards, state.flatten())
-            np.append(labels, action)
-            np.append(rewards, reward)
-            # boards.append(state.flatten())  # flatten 5x5 board to a 25 element array
-            # labels.append(action)
-            # rewards.append(reward)
+            boards = np.append(boards, state.flatten())
+            labels = np.append(labels, action)
+            rewards = np.append(rewards, reward)
 
             # boards.append()
             # label = np.zeros(25) 
             # label[move] = 1  # one hot encoding of the move made on that board
             # labels.append(label)
-    
-    print(f"board: {boards}")
 
-    boards_np = np.array(boards, dtype=np.float32)
+    boards_np = np.array(boards)
     actions_np = np.array(labels, dtype=np.float32)
+
+    # print(f"boards_np: {boards}")
 
     return boards_np, actions_np
 
@@ -156,6 +155,7 @@ def generate_board_data(num_samples):
 board, labels = generate_board_data(1000) # 1000 games
 
 X_train, X_test, y_train, y_test = train_test_split(board, labels, test_size=0.33, random_state=42)
+print("Spliting data")
 
 # main training and testing model/data
 train_dataset = TensorDataset(torch.tensor(X_train), torch.tensor(y_train))
@@ -200,6 +200,9 @@ def get_R(board):
     R = board
     return R
 
+print("started training")
+total_loss = 0.0 
+
 for epoch in tqdm(range(num_epochs)):  # loop over the dataset multiple times
     running_loss = 0.0
     #for i, data in enumerate(tqdm(train_dataloader, 0)):
@@ -226,7 +229,7 @@ for epoch in tqdm(range(num_epochs)):  # loop over the dataset multiple times
     loss_over_time.append(running_loss)
 
 print('Finished Training') 
-print(f'Epoch {epoch+1}: Loss = {total_loss / len(train_loader)}')
+print(f'Epoch {epoch+1}: Loss = {running_loss / len(train_loader)}')
 
 
 
