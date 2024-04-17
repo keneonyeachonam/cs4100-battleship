@@ -36,20 +36,40 @@ batch_size = 64
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 16, kernel_size=2, stride=1)  # output: 1x4x4 from 1x5x5 input
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=2, stride=1)  # output: 32?
-        self.fc1 = nn.Linear(32 * 3 * 3, 25)  # should first param be 16 or 1024, 25 to 5
-        # self.softmax = nn.Softmax(dim=1)
-        # self.fc_out = nn.Linear(25, 25)  # Added this layer to produce logits for CrossEntropyLoss
+        self.conv1 = nn.Conv2d(1, 16, kernel_size=2, stride=1)
+        self.bn1 = nn.BatchNorm2d(16)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=2, stride=1)
+        self.bn2 = nn.BatchNorm2d(32)
+        self.dropout1 = nn.Dropout(0.5)
+        self.fc1 = nn.Linear(32 * 3 * 3, 128)
+        self.fc2 = nn.Linear(128, 25)
+# OLD:
+#         super(Net, self).__init__()
+#         self.conv1 = nn.Conv2d(1, 16, kernel_size=2, stride=1)  # output: 1x4x4 from 1x5x5 input
+#         self.conv2 = nn.Conv2d(16, 32, kernel_size=2, stride=1)  # output: 32?
+#         self.dropout1 = nn.Dropout(0.5)
+#         self.fc1 = nn.Linear(32 * 3 * 3, 25)  # should first param be 16 or 1024, 25 to 5
+#         # self.softmax = nn.Softmax(dim=1)
+#         # self.fc_out = nn.Linear(25, 25)  # Added this layer to produce logits for CrossEntropyLoss
 
 
     def forward(self, x):
-        x = F.relu(self.conv1(x))  # after convolution
-        x = F.relu(self.conv2(x))  
-        x = torch.flatten(x, 1)  # flatten 4x4 grid to 16 element vector
-        x = self.fc1(x)  # fully connected layer
-        # x = self.softmax(x)  # softmax to get probabilities of each move
+        x = F.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = self.dropout1(x)
+        x = torch.flatten(x, 1)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
         return x
+
+# OLD:
+#         x = F.relu(self.conv1(x))  # after convolution
+#         x = F.relu(self.conv2(x)) 
+#         x = self.dropout1(x) 
+#         x = torch.flatten(x, 1)  # flatten 4x4 grid to 16 element vector
+#         x = self.fc1(x)  # fully connected layer
+#         # x = self.softmax(x)  # softmax to get probabilities of each move
+#         return x
 
 # format a coordinate (x, y) into a single value (0-24)
 def val_format(x, y):
@@ -64,8 +84,8 @@ def play_game(board):
     return board.AIBoard
 
 def play_game_record_moves(board):
-    start_state = np.copy(board.AIBoard) # starting game state
-    game_data = [start_state]
+    # start_state = np.copy(board.AIBoard) # starting game state
+    game_data = []
 
     while not board.check_gameover(): # if game isn't over yet
         # select random move
@@ -83,7 +103,8 @@ def play_game_record_moves(board):
 
         # save 
         game_data.append((pre_move_gamestate, val_format(row, col), reward))
-        
+    # state, cell moved on, reward
+    # print("GAME DATA: ", game_data)
     return game_data #  make move, return subsequent state
 
 def make_and_place_ships():
@@ -105,10 +126,19 @@ def make_and_place_ships():
 
     return board
 
+def augment_board(game_state):
+    states = [game_state]
+    # Add rotations
+    for k in range(1, 4):
+        states.append(np.rot90(game_state, k))
+    states.append(np.fliplr(game_state))  # Flip left-right
+    states.append(np.flipud(game_state))  # Flip up-down
+    return states
+
 def generate_board_data(num_samples):
-    boards = np.array([])
-    labels = np.array([])  # actions stored as class labels
-    rewards = np.array([])
+    boards = []
+    labels = []  # actions stored as class labels
+    rewards = []
 
     # all_game_data = []
     for _ in tqdm(range(num_samples)):
@@ -118,22 +148,31 @@ def generate_board_data(num_samples):
         #board = play_game(make_and_place_ships())  # random board states
 
         for data in game_data:
-            state = data[0]
+            # print("HERE IS THE DATA: ", data)
+            game_state = augment_board(data[0])[0].flatten() # flatten 5x5 board to a 25 element array
+            # print("STATE: ", game_state)  
             action = data[1]
+            # print("ACTION: ", action)
             reward = data[2]
-            boards = np.append(boards, state.flatten())
-            labels = np.append(labels, action)
-            rewards = np.append(rewards, reward)
+            # print("REWARD ", reward)
+            # np.append(boards, game_state)
+            # np.append(labels, action)
+            # np.append(rewards, reward)
+            boards.append(game_state.reshape(5, 5)) 
+            labels.append(action)
+            rewards.append(reward)
 
             # boards.append()
             # label = np.zeros(25) 
             # label[move] = 1  # one hot encoding of the move made on that board
             # labels.append(label)
+    
+    # print(f"board: {boards}")
+    # print(f"labels: {labels}")
 
-    boards_np = np.array(boards)
-    actions_np = np.array(labels, dtype=np.float32)
-
-    # print(f"boards_np: {boards}")
+    #boards_np = np.array(boards, dtype=np.float32)
+    boards_np = np.stack(boards)[:, None, :, :]
+    actions_np = np.array(labels, dtype=np.int64)
 
     return boards_np, actions_np
 
@@ -152,7 +191,7 @@ def generate_board_data(num_samples):
         
 #     return torch.tensor(boards, dtype=torch.float32), torch.tensor(labels, dtype=torch.float32)
 
-board, labels = generate_board_data(1000) # 1000 games
+board, labels = generate_board_data(100) # 1000 games (10 for now)
 
 X_train, X_test, y_train, y_test = train_test_split(board, labels, test_size=0.33, random_state=42)
 print("Spliting data")
@@ -160,9 +199,13 @@ print("Spliting data")
 # main training and testing model/data
 train_dataset = TensorDataset(torch.tensor(X_train), torch.tensor(y_train))
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+print("TRAIN DATA: ", len(train_dataset))
+print("TRAINLOADER: ", len(train_loader))
 
 test_dataset = TensorDataset(torch.tensor(X_test), torch.tensor(y_test))
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+print("TEST DATA: ", len(test_dataset))
+print("TESTLOADER: ", len(test_loader))
 
 def custom_loss(outputs, labels):
     labels = labels.long()
@@ -173,14 +216,12 @@ def custom_loss(outputs, labels):
 net = Net().to(device)
 
 # correct = []
-# optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
-optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
+optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+# optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min') # adjusts learning rate based on training processes
 
 # criterion = (L = -log(P(a | s) * R) and do backprogation to get min loss
 criterion = nn.CrossEntropyLoss()
-
-num_epochs = 20
-loss_over_time = []
 
 # format a single value (0 - 24) into a coordinate (0-4, 0-4)
 def coord_format(val):
@@ -200,8 +241,8 @@ def get_R(board):
     R = board
     return R
 
-print("started training")
-total_loss = 0.0 
+num_epochs = 50
+loss_over_time = []
 
 for epoch in tqdm(range(num_epochs)):  # loop over the dataset multiple times
     running_loss = 0.0
@@ -210,7 +251,7 @@ for epoch in tqdm(range(num_epochs)):  # loop over the dataset multiple times
         # get the inputs; data is a list of [inputs, labels]
         #inputs, labels = data
         #inputs, labels = inputs.to(device), labels.to(device)
-        inputs = inputs.to(device).unsqueeze(1)
+        inputs = inputs.to(device).float()      #unsqueeze(1)
         labels = labels.to(device).long()
 
         # zero the parameter gradients
@@ -225,26 +266,40 @@ for epoch in tqdm(range(num_epochs)):  # loop over the dataset multiple times
         optimizer.step()
         running_loss += loss.item()
 
+    scheduler.step(running_loss)
+    loss_over_time.append(running_loss / len(train_loader))
+    print(f'Epoch {epoch+1}: Loss = {running_loss / len(train_loader)}')
     print(f"Training loss: {running_loss}")
-    loss_over_time.append(running_loss)
-
+    
 print('Finished Training') 
-print(f'Epoch {epoch+1}: Loss = {running_loss / len(train_loader)}')
 
-
-
-"""
-We're not training so we don't need to calculate the gradients for our outputs
-"""
+# CHECKING ACCURACY:
 total = 0
 correct = 0
+
+# since we're not training, we don't need to calculate the gradients for our outputs
 with torch.no_grad():
-    for data in test_dataloader:
+    for data in test_loader:
         inputs, labels = data
+        inputs = inputs.to(device).float()
+        labels = labels.to(device).long()
         outputs = net(inputs)
         _, predicted = torch.max(outputs.data, 1)
-
+        # total labels
         total += labels.size(0)
+        # correctly predicted labels
         correct += (predicted == labels).sum().item()
 
-print(f'Accuracy of the network on the test instances: {100 * correct // total}%')
+print(f'Accuracy: {100 * (correct / total)}%')
+
+
+# with torch.no_grad():
+#     for data in test_loader:
+#         inputs, labels = data
+#         outputs = net(inputs)
+#         _, predicted = torch.max(outputs.data, 1)
+
+#         total += labels.size(0)
+#         correct += (predicted == labels).sum().item()
+
+# print(f'Accuracy of the network on the test instances: {100 * correct // total}%')
