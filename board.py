@@ -97,7 +97,6 @@ class Board():
         self.ships.append([ship, (row, col)]) 
 
         place_count = 0
-        # exceeded_dim_message = f"{ship.name} has exceeded dimensions from {row}, {col}."
 
         if (ship.dir == Direction.NORTH):
             for i in range(0, ship.size):
@@ -106,7 +105,6 @@ class Board():
                     place_count += 1
                 else:
                     ship.size = place_count 
-                    # print(exceeded_dim_message + f" Size is now {ship.size}")
                     return
         elif (ship.dir == Direction.SOUTH):
             for i in range(0, ship.size):
@@ -115,7 +113,6 @@ class Board():
                     place_count += 1
                 else:
                     ship.size = place_count 
-                    # print(exceeded_dim_message + f" Size is now {ship.size}")
                     return
         elif (ship.dir == Direction.WEST):
             for i in range(0, ship.size):
@@ -124,7 +121,6 @@ class Board():
                     place_count += 1 
                 else:
                     ship.size = place_count 
-                    # print(exceeded_dim_message + f" Size is now {ship.size}")
                     return
         elif (ship.dir == Direction.EAST):
             for i in range(0, ship.size):
@@ -133,7 +129,6 @@ class Board():
                     place_count += 1
                 else:
                     ship.size = place_count 
-                    # print(exceeded_dim_message + f" Size is now {ship.size}.")
                     return
 
         

@@ -19,8 +19,11 @@ elif torch.cuda.is_available():
 else:
 	device=torch.device("cpu")
 
-# Convert data to torch tensors + gets the trainloader/traindata and testloader/testdata
+
 class Data(Dataset):
+    '''
+    Convert data to torch tensors and gets the trainloader/traindata and testloader/testdata
+    '''
     def __init__(self, boards, labels):
         self.X = boards
         self.y = labels
@@ -33,7 +36,11 @@ class Data(Dataset):
     
 batch_size = 64
 
+
 class Net(nn.Module):
+    '''
+    Our neural network model
+    '''
     def __init__(self):
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(1, 16, kernel_size=2, stride=1)
@@ -71,8 +78,11 @@ class Net(nn.Module):
 #         # x = self.softmax(x)  # softmax to get probabilities of each move
 #         return x
 
-# format a coordinate (x, y) into a single value (0-24)
+
 def val_format(x, y):
+    '''
+    Format a coordinate (x, y) into a single value (0-24)
+    '''
     return x + (y * 5)
 
 def play_game(board):
@@ -83,7 +93,11 @@ def play_game(board):
 
     return board.AIBoard
 
+
 def play_game_record_moves(board):
+    '''
+    Given a start board, plays Battleship until game over and record the results
+    '''
     # start_state = np.copy(board.AIBoard) # starting game state
     game_data = []
 
@@ -107,8 +121,12 @@ def play_game_record_moves(board):
     # print("GAME DATA: ", game_data)
     return game_data #  make move, return subsequent state
 
+
 def make_and_place_ships():
     # create a random seed?
+    '''
+    Places ships on board
+    '''
     ships_positions = []
     board = Board(5)
 
@@ -126,6 +144,7 @@ def make_and_place_ships():
 
     return board
 
+
 def augment_board(game_state):
     states = [game_state]
     # Add rotations
@@ -135,10 +154,12 @@ def augment_board(game_state):
     states.append(np.flipud(game_state))  # Flip up-down
     return states
 
+
 def generate_board_data(num_samples):
     boards = []
     labels = []  # actions stored as class labels
     rewards = []
+    board_data = []
 
     # all_game_data = []
     for _ in tqdm(range(num_samples)):
@@ -146,6 +167,9 @@ def generate_board_data(num_samples):
         game_data = play_game_record_moves(board_with_ships) # get game states
         #all_game_data.extend(game_data)
         #board = play_game(make_and_place_ships())  # random board states
+ 
+        total_misses = 0
+        total_hits = 0
 
         for data in game_data:
             # print("HERE IS THE DATA: ", data)
@@ -154,6 +178,12 @@ def generate_board_data(num_samples):
             action = data[1]
             # print("ACTION: ", action)
             reward = data[2]
+
+            if reward == 100:
+                total_hits += 1
+            elif reward == 1:
+                total_misses += 1
+
             # print("REWARD ", reward)
             # np.append(boards, game_state)
             # np.append(labels, action)
@@ -161,6 +191,10 @@ def generate_board_data(num_samples):
             boards.append(game_state.reshape(5, 5)) 
             labels.append(action)
             rewards.append(reward)
+
+
+            # hits, miss, # of states, total score,
+            # board_data.append([sum(rewards), len(boards), total_hits, total_misses]) 
 
             # boards.append()
             # label = np.zeros(25) 
@@ -171,7 +205,8 @@ def generate_board_data(num_samples):
     # print(f"labels: {labels}")
 
     #boards_np = np.array(boards, dtype=np.float32)
-    boards_np = np.stack(boards)[:, None, :, :]
+    boards_np = np.stack(boards)[:, None, :, :] 
+    # boards_np = np.stack(np.array(board_data))[:, None, :]
     actions_np = np.array(labels, dtype=np.int64)
 
     return boards_np, actions_np
@@ -191,10 +226,11 @@ def generate_board_data(num_samples):
         
 #     return torch.tensor(boards, dtype=torch.float32), torch.tensor(labels, dtype=torch.float32)
 
-board, labels = generate_board_data(100) # 1000 games (10 for now)
+board, labels = generate_board_data(10000) # 1000 games (10 for now)
 
 X_train, X_test, y_train, y_test = train_test_split(board, labels, test_size=0.33, random_state=42)
 print("Spliting data")
+
 
 # main training and testing model/data
 train_dataset = TensorDataset(torch.tensor(X_train), torch.tensor(y_train))
@@ -290,16 +326,6 @@ with torch.no_grad():
         # correctly predicted labels
         correct += (predicted == labels).sum().item()
 
-print(f'Accuracy: {100 * (correct / total)}%')
-
-
-# with torch.no_grad():
-#     for data in test_loader:
-#         inputs, labels = data
-#         outputs = net(inputs)
-#         _, predicted = torch.max(outputs.data, 1)
-
-#         total += labels.size(0)
-#         correct += (predicted == labels).sum().item()
-
-# print(f'Accuracy of the network on the test instances: {100 * correct // total}%')
+print(f'Accuracy: {100 * (correct / total)} %')
+# Accuracy: 3.608923884514436%
+# Accuracy: 4.076436239885419%
