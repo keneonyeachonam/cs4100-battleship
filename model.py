@@ -102,28 +102,26 @@ def play_game_record_moves(board):
     game_data = []
 
     while not board.check_gameover(): # if game isn't over yet
-        # select random move
+        # select random move on board
         row = random.randint(0, 4)
         col = random.randint(0, 4)
 
-        # save state pre move
+        # save the state before the next move
         pre_move_gamestate = np.copy(board.AIBoard)
         
         # play move
         hit = board.missile((row, col))
         reward = 100 if hit else -1
 
-        # print(f"board: {pre_move_gamestate}")
-
         # save 
         game_data.append((pre_move_gamestate, val_format(row, col), reward))
+
     # state, cell moved on, reward
     # print("GAME DATA: ", game_data)
     return game_data #  make move, return subsequent state
 
 
 def make_and_place_ships():
-    # create a random seed?
     '''
     Places ships on board
     '''
@@ -159,7 +157,6 @@ def generate_board_data(num_samples):
     boards = []
     labels = []  # actions stored as class labels
     rewards = []
-    board_data = []
 
     # all_game_data = []
     for _ in tqdm(range(num_samples)):
@@ -185,9 +182,6 @@ def generate_board_data(num_samples):
                 total_misses += 1
 
             # print("REWARD ", reward)
-            # np.append(boards, game_state)
-            # np.append(labels, action)
-            # np.append(rewards, reward)
             boards.append(game_state.reshape(5, 5)) 
             labels.append(action)
             rewards.append(reward)
@@ -200,13 +194,8 @@ def generate_board_data(num_samples):
             # label = np.zeros(25) 
             # label[move] = 1  # one hot encoding of the move made on that board
             # labels.append(label)
-    
-    # print(f"board: {boards}")
-    # print(f"labels: {labels}")
 
-    #boards_np = np.array(boards, dtype=np.float32)
     boards_np = np.stack(boards)[:, None, :, :] 
-    # boards_np = np.stack(np.array(board_data))[:, None, :]
     actions_np = np.array(labels, dtype=np.int64)
 
     return boards_np, actions_np
@@ -243,6 +232,7 @@ test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 print("TEST DATA: ", len(test_dataset))
 print("TESTLOADER: ", len(test_loader))
 
+
 def custom_loss(outputs, labels):
     labels = labels.long()
     gathered_probs = outputs[range(outputs.size(0)), labels]  # Probability of selected actions
@@ -255,8 +245,6 @@ net = Net().to(device)
 optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 # optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min') # adjusts learning rate based on training processes
-
-# criterion = (L = -log(P(a | s) * R) and do backprogation to get min loss
 criterion = nn.CrossEntropyLoss()
 
 # format a single value (0 - 24) into a coordinate (0-4, 0-4)
@@ -265,7 +253,6 @@ def coord_format(val):
 
 # criterion = (L = -log(P(a | s) * R) and do backprogation to get min loss
 
-# (L = -log(P(a | s) * R)
 # def criterion(x, y, board):
 #     # Reward is the value when guessed. From hidden board
 #     R = board.HiddenBoard[x][y]
