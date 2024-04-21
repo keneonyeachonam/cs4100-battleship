@@ -130,11 +130,11 @@ def make_and_place_ships():
 
 def augment_board(game_state):
     states = [game_state]
-    # Add rotations
+    # add rotations
     for k in range(1, 4):
         states.append(np.rot90(game_state, k))
-    states.append(np.fliplr(game_state))  # Flip left-right
-    states.append(np.flipud(game_state))  # Flip up-down
+    states.append(np.fliplr(game_state))  # flip left-right
+    states.append(np.flipud(game_state))  # flip up-down
     return states
 
 
@@ -177,7 +177,7 @@ def generate_board_data(num_samples):
 board, labels = generate_board_data(10000)
 
 X_train, X_test, y_train, y_test = train_test_split(board, labels, test_size=0.33, random_state=42)
-print("Spliting data")
+print("Splitting data")
 
 # main training and testing model/data
 train_dataset = TensorDataset(torch.tensor(X_train), torch.tensor(y_train))
@@ -193,13 +193,15 @@ print("TESTLOADER: ", len(test_loader))
 
 def custom_loss(outputs, labels):
     labels = labels.long()
-    gathered_probs = outputs[range(outputs.size(0)), labels]  # Probability of selected actions
+    gathered_probs = outputs[range(outputs.size(0)), labels]  # probability of selected actions
     log_probs = torch.log(gathered_probs.clamp(min=1e-9))
     return -torch.mean(log_probs)
 
 net = Net().to(device)
 
-optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+# performs best with these parameters
+optimizer = torch.optim.AdamW(net.parameters(), lr=0.001, weight_decay = 0.01)
+# optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min') # adjusts learning rate based on training processes
 criterion = nn.CrossEntropyLoss()
 
@@ -209,12 +211,12 @@ def coord_format(val):
 
 def get_R(board):
     '''
-    Retrives Reward, the value when guessed from hidden board
+    retrieves Reward, the value when guessed from hidden board
     '''
     R = board
     return R
 
-num_epochs = 50
+num_epochs = 20
 loss_over_time = []
 
 for epoch in tqdm(range(num_epochs)):  # loop over the dataset multiple times
