@@ -137,7 +137,7 @@ class Board():
         Launches a missle at the coordinate points
 
         Return -1 for a miss and return 100 for a hit
-        AA missile launched at  location already fired returns a miss
+        AA missile launched at location already fired returns a miss
         """
         moves = []
 
@@ -176,8 +176,9 @@ class Board():
         
 
     def check_gameover(self): 
-        """ Check gameover condition (all ships sunk). """
-        # ship[0] since each ship in ships is a list (ships is a list of lists)
+        """ 
+        Check gameover condition (all ships sunk). 
+        """
         total_life = sum([ship[0].num_left for ship in self.ships])
 
         if total_life == 0: 

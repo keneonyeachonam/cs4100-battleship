@@ -52,12 +52,18 @@ class Ship():
         self.num_hit = 0            # number of hit tiles left on ship
         self.isSunk = False;        # not sunk yet
 
-    # What is the name of this ship?
+
     def get_name(self):
+        '''
+        Gets the name of the ship
+        '''
         return self.name
 
-    # What is the size of this ship?
+
     def size(self):
+        '''
+        Gets the size of the ship
+        '''
         return self.size
 
 
